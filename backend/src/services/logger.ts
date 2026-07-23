@@ -4,16 +4,22 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const baseLogger = pino({
-  level: 'info',
-  transport: {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'yyyy-mm-dd HH:MM:ss.l o'
-    }
-  }
-});
+const isVercel = !!process.env.VERCEL;
+
+const baseLogger = pino(
+  isVercel
+    ? { level: 'info' }
+    : {
+        level: 'info',
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'yyyy-mm-dd HH:MM:ss.l o'
+          }
+        }
+      }
+);
 
 export const logger = {
   info: (sessionId: string, msg: string, meta?: any) => {
