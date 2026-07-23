@@ -99,14 +99,34 @@ if (-not $isInitialized) {
     } else {
         Invoke-GitCommand -Arguments @("remote", "set-url", "origin", $remoteUrl) -FailureMessage "Failed to update remote origin."
     }
-    Invoke-GitCommand -Arguments @("push", "-u", "origin", "main") -FailureMessage "Initial push failed. Please verify GitHub permissions."
+    
+    Write-Host "Attempting standard push..." -ForegroundColor Yellow
+    $proc = Start-Process -FilePath "git" -ArgumentList @("push", "-u", "origin", "main") -NoNewWindow -Wait -PassThru
+    if ($proc.ExitCode -ne 0) {
+        Write-Host "`n[WARNING] Standard push failed. Retrying with Force Push (git push -f)..." -ForegroundColor Yellow
+        $procForce = Start-Process -FilePath "git" -ArgumentList @("push", "-u", "-f", "origin", "main") -NoNewWindow -Wait -PassThru
+        if ($procForce.ExitCode -ne 0) {
+            Write-Host "`n[FATAL ERROR] Force push failed as well. Please verify GitHub permissions." -ForegroundColor Red
+            Read-Host "`nPress Enter to exit..."
+            Exit
+        }
+    }
 }
 else {
     Write-Host "`n[1/2] Committing updates..." -ForegroundColor Yellow
     Safe-Commit -msg $commitMessage
     
     Write-Host "[2/2] Pushing changes to remote 'main'..." -ForegroundColor Yellow
-    Invoke-GitCommand -Arguments @("push", "origin", "main") -FailureMessage "Push failed. Please verify GitHub permissions."
+    $proc = Start-Process -FilePath "git" -ArgumentList @("push", "origin", "main") -NoNewWindow -Wait -PassThru
+    if ($proc.ExitCode -ne 0) {
+        Write-Host "`n[WARNING] Standard push failed. Retrying with Force Push (git push -f)..." -ForegroundColor Yellow
+        $procForce = Start-Process -FilePath "git" -ArgumentList @("push", "-f", "origin", "main") -NoNewWindow -Wait -PassThru
+        if ($procForce.ExitCode -ne 0) {
+            Write-Host "`n[FATAL ERROR] Force push failed as well. Please verify GitHub permissions." -ForegroundColor Red
+            Read-Host "`nPress Enter to exit..."
+            Exit
+        }
+    }
 }
 
 Write-Host "`nGit operations completed successfully!" -ForegroundColor Green
