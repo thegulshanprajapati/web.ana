@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Highlight Selection Color matching WhatsApp Emerald / Cyberpunk Theme */
+::selection {
+  background-color: rgba(16, 185, 129, 0.35);
+  color: #10b981;
+}
+
+::-moz-selection {
+  background-color: rgba(16, 185, 129, 0.35);
+  color: #10b981;
+}
+
+body {
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+  overflow-x: hidden;
+  background-color: #0b0f19;
+  background-image: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.04) 0%, transparent 80%);
+  user-select: none; /* Prevent unwanted selection on UI elements */
+}
+
+/* Allow text selection ONLY on actual editable inputs, textareas, and code blocks */
+input, textarea, [contenteditable="true"], .selectable-text, code, pre {
+  user-select: text !important;
+}
+
+/* Custom Glass Panels */
+.glass-panel {
+  background: rgba(17, 24, 39, 0.65);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(16, 185, 129, 0.12);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(16, 185, 129, 0.08);
+}
+
+/* Custom Styled Checkbox */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 1.5px solid rgba(168, 85, 247, 0.4);
+  border-radius: 6px;
+  background-color: rgba(17, 24, 39, 0.8);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+input[type="checkbox"]:hover {
+  border-color: rgba(168, 85, 247, 0.8);
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+}
+
+input[type="checkbox"]:checked {
+  background-color: #a855f7;
+  border-color: #c084fc;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+}
+
+input[type="checkbox"]:checked::before {
+  content: "";
+  width: 0.6rem;
+  height: 0.6rem;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  background-color: #ffffff;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(11, 15, 25, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.25);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.5);
+}

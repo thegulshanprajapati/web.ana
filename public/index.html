@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WA Automate - Admin Dashboard</title>
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Sleek CSS -->
+  <link rel="stylesheet" href="style.css">
+  <!-- QRCode.js CDN for client-side QR rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- Background Ambient Glows -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Fullscreen Login Screen -->
+  <div class="login-screen-container" id="login-screen" style="display: none;">
+    <div class="login-box">
+      <div class="login-header">
+        <div class="logo-icon">
+          <i class="fa-brands fa-whatsapp"></i>
+        </div>
+        <div class="logo-text">
+          <h2>WA Automate</h2>
+          <span>Automation Portal</span>
+        </div>
+      </div>
+
+      <div class="login-body">
+
+        <div class="login-status-card">
+          <div class="login-status-visual" id="login-status-visual">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+          </div>
+          <div class="login-status-details">
+            <h3 id="login-status-title">Connecting to WhatsApp...</h3>
+            <p id="login-status-desc">Initializing session socket connection.</p>
+          </div>
+        </div>
+
+        <!-- QR Code Display inside Login Screen -->
+        <div class="login-qr-wrapper" id="login-qr-wrapper" style="display: none;">
+          <div class="qr-box">
+            <div id="login-qr-code"></div>
+          </div>
+          <p class="qr-hint"><i class="fa-solid fa-mobile-screen"></i> Scan this QR code using linked devices in your WhatsApp mobile application to authorize this session.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Container -->
+  <div class="dashboard-container" id="dashboard-container" style="display: none;">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">
+          <i class="fa-brands fa-whatsapp"></i>
+        </div>
+        <div class="logo-text">
+          <h2>WA Automate</h2>
+          <span>Automation Portal</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <a href="#overview" class="menu-item active" data-tab="overview">
+          <i class="fa-solid fa-chart-pie"></i> Overview
+        </a>
+        <a href="#requests" class="menu-item" data-tab="requests">
+          <i class="fa-solid fa-user-plus"></i> Join Requests
+          <span class="badge badge-pending" id="badge-pending-count">0</span>
+        </a>
+        <a href="#groups" class="menu-item" data-tab="groups">
+          <i class="fa-solid fa-users-rectangle"></i> Managed Groups
+        </a>
+        <a href="#messenger" class="menu-item" data-tab="messenger">
+          <i class="fa-solid fa-paper-plane"></i> Direct Messenger
+        </a>
+        <a href="#scheduler" class="menu-item" data-tab="scheduler">
+          <i class="fa-solid fa-calendar-days"></i> Broadcast Scheduler
+        </a>
+        <a href="#logs" class="menu-item" data-tab="logs">
+          <i class="fa-solid fa-terminal"></i> Live Logs
+        </a>
+      </nav>
+
+      <div class="session-picker-container">
+        <label class="session-picker-label">WhatsApp Session</label>
+        <div class="custom-dropdown" id="session-selector-dropdown">
+          <div class="custom-dropdown-trigger" id="session-dropdown-trigger">
+            <span><i class="fa-brands fa-whatsapp"></i> <span id="current-session-label">default</span></span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </div>
+          <div class="custom-dropdown-options" id="session-dropdown-options">
+            <div class="custom-dropdown-option active" data-value="default">default</div>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btn-add-session" style="margin-top: 8px; width: 100%; display: flex; justify-content: center; gap: 6px; align-items: center;">
+          <i class="fa-solid fa-plus"></i> Add Session
+        </button>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="session-info">
+          <i class="fa-solid fa-server"></i>
+          <div>
+            <p>Active Session</p>
+            <strong id="session-id-display">default</strong>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Bar Header -->
+      <header class="top-bar">
+        <div class="page-title">
+          <h1 id="tab-title">Overview</h1>
+          <p id="tab-subtitle">Real-time stats and bot status</p>
+        </div>
+
+        <div class="bot-status-container">
+          <div class="status-indicator" id="status-indicator">
+            <span class="status-dot"></span>
+            <span class="status-text" id="status-text">Connecting...</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-reconnect" title="Force reconnect session" style="margin-right: 8px;">
+            <i class="fa-solid fa-rotate"></i> Reconnect
+          </button>
+          <button class="btn btn-danger btn-sm" id="btn-logout" title="Clear session and logout">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout Session
+          </button>
+        </div>
+      </header>
+
+      <!-- TAB: Overview -->
+      <section id="tab-content-overview" class="tab-content active-content">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stats-card">
+            <div class="card-icon icon-pending">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="card-data">
+              <h3>Pending Requests</h3>
+              <h1 id="stat-pending">0</h1>
+            </div>
+          </div>
+          <div class="stats-card">
+            <div class="card-icon icon-approved">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="card-data">
+              <h3>Approved</h3>
+              <h1 id="stat-approved">0</h1>
+            </div>
+          </div>
+          <div class="stats-card">
+            <div class="card-icon icon-rejected">
+              <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+            <div class="card-data">
+              <h3>Rejected</h3>
+              <h1 id="stat-rejected">0</h1>
+            </div>
+          </div>
+          <div class="stats-card">
+            <div class="card-icon icon-total">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="card-data">
+              <h3>Total Processed</h3>
+              <h1 id="stat-total">0</h1>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connected Profile Card -->
+        <div class="grid-section">
+          <div class="panel profile-panel">
+            <div class="panel-header">
+              <h2>Connected WhatsApp Account</h2>
+            </div>
+            <div class="panel-body profile-body">
+              <div class="profile-avatar-container">
+                <div class="profile-avatar-wrapper" id="btn-edit-dp" title="Click to change profile picture">
+                  <img src="default-avatar.png" id="profile-dp" alt="Avatar">
+                  <div class="avatar-edit-overlay">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>Edit DP</span>
+                  </div>
+                </div>
+                <input type="file" id="dp-file-input" style="display: none;" accept="image/*">
+              </div>
+              <div class="profile-details-container">
+                <div class="profile-detail-row">
+                  <span class="detail-label">Session ID</span>
+                  <span class="detail-value" id="profile-session-id">default</span>
+                </div>
+                <div class="profile-detail-row">
+                  <span class="detail-label">WhatsApp Number</span>
+                  <span class="detail-value" id="profile-phone-number">Retrieving...</span>
+                </div>
+                <div class="profile-detail-row">
+                  <span class="detail-label">Account Name</span>
+                  <span class="detail-value" id="profile-account-name">Retrieving...</span>
+                </div>
+                <div class="profile-detail-row">
+                  <span class="detail-label">Status</span>
+                  <span class="status-pill approved" style="font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                    <span style="width:6px; height:6px; background-color:#fff; border-radius:50%; display:inline-block;"></span> Active & Listening
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Overview Table -->
+          <div class="panel requests-quick-panel">
+            <div class="panel-header">
+              <h2>Recent Join Requests</h2>
+              <a href="#requests" class="view-all-link" id="link-view-all">View All</a>
+            </div>
+            <div class="panel-body table-responsive">
+              <table class="requests-table">
+                <thead>
+                  <tr>
+                    <th>Student Details</th>
+                    <th>Course Info</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="quick-requests-list">
+                  <tr>
+                    <td colspan="4" class="text-center text-muted">Loading requests...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: Join Requests -->
+      <section id="tab-content-requests" class="tab-content">
+        <div class="panel list-panel">
+          <!-- Filter Toolbar -->
+          <div class="toolbar">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="search-input" placeholder="Search by name, JID, college, or branch...">
+            </div>
+            
+              <div class="custom-dropdown" id="filter-status-dropdown">
+                <div class="custom-dropdown-trigger" id="filter-status-trigger">
+                  <span data-value="all">All Statuses</span>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="custom-dropdown-options">
+                  <div class="custom-dropdown-option active" data-value="all">All Statuses</div>
+                  <div class="custom-dropdown-option" data-value="Pending">Pending</div>
+                  <div class="custom-dropdown-option" data-value="Approved">Approved</div>
+                  <div class="custom-dropdown-option" data-value="Rejected">Rejected</div>
+                </div>
+              </div>
+          </div>
+
+          <!-- Requests Table -->
+          <div class="table-responsive">
+            <table class="requests-table main-table">
+              <thead>
+                <tr>
+                  <th>Student Info</th>
+                  <th>College & Branch</th>
+                  <th>Semester</th>
+                  <th>Requested Time</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="requests-list">
+                <!-- Populated via Javascript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: Managed Groups -->
+      <section id="tab-content-groups" class="tab-content">
+        <div class="panel groups-panel">
+          <div class="panel-header">
+            <h2>WhatsApp Groups Listing</h2>
+            <button class="btn btn-secondary btn-sm" id="btn-refresh-groups">
+              <i class="fa-solid fa-arrows-rotate"></i> Refresh Groups
+            </button>
+          </div>
+          <div class="panel-body table-responsive">
+            <table class="requests-table">
+              <thead>
+                <tr>
+                  <th>Group Name</th>
+                  <th>Group JID</th>
+                  <th>Members (Students)</th>
+                  <th>Join Approval Settings</th>
+                </tr>
+              </thead>
+              <tbody id="groups-list">
+                <tr>
+                  <td colspan="4" class="text-center text-muted">Loading group list...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: Direct Messenger -->
+      <section id="tab-content-messenger" class="tab-content">
+        <div class="grid-section">
+          <!-- Send Message Form -->
+          <div class="panel form-panel">
+            <div class="panel-header">
+              <h2>Send Direct Message</h2>
+            </div>
+            <div class="panel-body">
+              <form id="messenger-form" class="dashboard-form">
+                <div class="form-group">
+                  <label for="msg-recipient">Recipient JID or Phone Number</label>
+                  <p class="form-help">Enter JID (e.g. 91xxxxxxxxxx@s.whatsapp.net) or group ID (e.g. 120363xxxxxxxx@g.us), or raw phone number.</p>
+                  <input type="text" id="msg-recipient" required placeholder="e.g. 919876543210 or select below">
+                </div>
+
+                <div class="form-group">
+                  <label for="msg-text">Message Content</label>
+                  <textarea id="msg-text" required rows="6" placeholder="Type your message here..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btn-send-message">
+                  <i class="fa-solid fa-paper-plane"></i> Dispatch Message
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Quick Contacts/Groups for Messaging -->
+          <div class="panel selection-panel">
+            <div class="panel-header">
+              <h2>Select Active Student / Group</h2>
+            </div>
+            <div class="panel-body table-responsive">
+              <p class="text-muted" style="font-size: 13px; margin-bottom: 15px;">Click any row to automatically set them as the recipient.</p>
+              <table class="requests-table">
+                <thead>
+                  <tr>
+                    <th>Target Subject</th>
+                    <th>JID / Address</th>
+                  </tr>
+                </thead>
+                <tbody id="quick-msg-targets">
+                  <tr>
+                    <td colspan="2" class="text-center text-muted">No targets available. Make sure bot is active.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: Broadcast Scheduler -->
+      <section id="tab-content-scheduler" class="tab-content">
+        <div class="grid-section" style="grid-template-columns: 1.1fr 1.9fr;">
+          <!-- Schedule message form -->
+          <div class="panel form-panel">
+            <div class="panel-header">
+              <h2>Schedule Broadcast</h2>
+            </div>
+            <div class="panel-body">
+              <form id="scheduler-form" class="dashboard-form">
+                <div class="form-group">
+                  <label for="sched-recipient">Recipient JID or Phone</label>
+                  <input type="text" id="sched-recipient" required placeholder="e.g. 919876543210 or group JID">
+                </div>
+
+                <div class="form-group">
+                  <label><i class="fa-regular fa-calendar-days"></i> Delivery Schedule Time</label>
+                  <div class="custom-datetime-trigger" id="custom-sched-time-trigger">
+                    <span id="custom-sched-time-label">Select date & time...</span>
+                    <i class="fa-regular fa-calendar"></i>
+                  </div>
+                  <input type="hidden" id="sched-time" required>
+                  
+                  <div class="custom-datetime-picker" id="custom-datetime-picker">
+                    <div class="picker-header">
+                      <button type="button" id="prev-month-btn"><i class="fa-solid fa-chevron-left"></i></button>
+                      <span id="calendar-month-year">July 2026</span>
+                      <button type="button" id="next-month-btn"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-grid">
+                      <div class="weekdays">
+                        <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                      </div>
+                      <div class="days" id="calendar-days-container"></div>
+                    </div>
+                    <div class="time-picker-section">
+                      <div class="time-picker-col">
+                        <label>Hour</label>
+                        <select id="picker-hour" class="custom-picker-select"></select>
+                      </div>
+                      <div class="time-picker-col">
+                        <label>Minute</label>
+                        <select id="picker-minute" class="custom-picker-select"></select>
+                      </div>
+                      <div class="time-picker-col">
+                        <label>Period</label>
+                        <select id="picker-period" class="custom-picker-select">
+                          <option value="AM">AM</option>
+                          <option value="PM">PM</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="picker-footer">
+                      <button type="button" class="btn btn-secondary btn-sm" id="picker-clear-btn">Clear</button>
+                      <button type="button" class="btn btn-success btn-sm" id="picker-apply-btn">Apply</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="sched-text">Message Content</label>
+                  <textarea id="sched-text" required rows="5" placeholder="Enter broadcast message text..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                  <i class="fa-solid fa-calendar-plus"></i> Schedule Broadcast
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Scheduled list -->
+          <div class="panel list-panel">
+            <div class="panel-header">
+              <h2>Scheduled Messages Queue</h2>
+            </div>
+            <div class="panel-body table-responsive" style="padding: 0;">
+              <table class="requests-table">
+                <thead>
+                  <tr>
+                    <th>Recipient</th>
+                    <th>Message snippet</th>
+                    <th>Delivery Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="scheduled-queue-list">
+                  <tr>
+                    <td colspan="5" class="text-center text-muted">No scheduled messages queue found.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: Live Logs -->
+      <section id="tab-content-logs" class="tab-content">
+        <div class="panel logs-panel">
+          <div class="panel-header">
+            <h2>System Logs Console</h2>
+            <div class="console-actions">
+              <button class="btn btn-secondary btn-sm" id="btn-clear-logs">
+                <i class="fa-solid fa-trash-can"></i> Clear Terminal
+              </button>
+              <button class="btn btn-secondary btn-sm" id="btn-toggle-autoscroll">
+                <i class="fa-solid fa-arrows-to-dot"></i> Auto-Scroll: ON
+              </button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="console-window" id="console-window">
+              <!-- Logs stream here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Custom Modal Popup -->
+  <div class="custom-modal-overlay" id="custom-alert-modal" style="display: none;">
+    <div class="custom-modal-box">
+      <div class="custom-modal-header">
+        <h3 id="custom-modal-title">Notification</h3>
+        <button class="custom-modal-close" id="custom-modal-close-btn">&times;</button>
+      </div>
+      <div class="custom-modal-body">
+        <p id="custom-modal-message">Message text goes here.</p>
+        <div class="custom-modal-input-container" id="custom-modal-input-container" style="display: none;">
+          <input type="text" id="custom-modal-input-field" placeholder="Enter value...">
+        </div>
+      </div>
+      <div class="custom-modal-footer">
+        <button class="btn btn-secondary" id="custom-modal-cancel-btn">Cancel</button>
+        <button class="btn btn-primary" id="custom-modal-ok-btn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

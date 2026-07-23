@@ -1,0 +1,213 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---- USER AUTHENTICATION MODEL -------------------------------- //
+
+model User {
+  id        String   @id @default(uuid())
+  userId    String   @unique // Login username
+  email     String?  @unique
+  password  String   // Hashed password
+  fullName  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id        String   @id
+  status    String   @default("disconnected")
+  phone     String?
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JoinRequest {
+  id          Int      @id @default(autoincrement())
+  sessionId   String   @default("default")
+  name        String?
+  jid         String
+  groupId     String
+  college     String?
+  branch      String?
+  semester    String?
+  status      String   @default("Pending")
+  requestTime DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model ScheduledMessage {
+  id            Int      @id @default(autoincrement())
+  sessionId     String   @default("default")
+  recipient     String
+  message       String
+  scheduledTime DateTime
+  status        String   @default("Pending")
+  createdAt     DateTime @default(now())
+}
+
+model AutoReply {
+  id          Int      @id @default(autoincrement())
+  sessionId   String   @default("default")
+  type        String   // "welcome", "keyword", "command", "start-ana", "ai", "join-request"
+  keyword     String?  // nullable for welcome/start-ana/ai
+  replyText   String
+  personality String   @default("friendly") // "friendly", "professional", "assistant", "funny", "custom"
+  customTone  String?  // Custom tone / prompt instructions defined by the user
+  matchType   String   @default("contains") // "contains", "exact", "starts_with"
+  useAi       Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model AiConfig {
+  id              Int      @id @default(1)
+  provider        String   @default("pollinations") // "pollinations", "groq"
+  apiKey          String?
+  modelName       String   @default("gpt-4o-mini")
+  systemPrompt     String  @default("You are Ana, a smart and friendly WhatsApp AI assistant. Keep responses short and friendly for WhatsApp.")
+  dailyLimit      Int      @default(500) // Security limit on AI messages per day
+  isEnabled       Boolean  @default(true)
+  updatedAt       DateTime @updatedAt
+}
+
+model AiChatLog {
+  id          Int      @id @default(autoincrement())
+  sessionId   String   @default("default")
+  senderJid   String
+  prompt      String
+  aiResponse  String
+  tokensUsed  Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+// ---- ENTERPRISE WORKFLOW AUTOMATION MODELS -------------------------------- //
+
+model Workflow {
+  id          String              @id @default(uuid())
+  sessionId   String              @default("default")
+  name        String
+  description String?
+  isActive    Boolean             @default(true)
+  version     Int                 @default(1)
+  nodes       WorkflowNode[]
+  connections WorkflowConnection[]
+  executions  WorkflowExecution[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model WorkflowNode {
+  id         String   @id @default(uuid())
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  nodeId     String   // Canvas ReactFlow node ID (e.g. node_1)
+  type       String   // "trigger", "logic", "action"
+  subtype    String   // "whatsapp_message", "if", "send_message", etc.
+  label      String
+  positionX  Float
+  positionY  Float
+  configJson String   @default("{}") // Node configuration parameters
+  createdAt  DateTime @default(now())
+}
+
+model WorkflowConnection {
+  id           String   @id @default(uuid())
+  workflowId   String
+  workflow     Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  edgeId       String   // Canvas ReactFlow edge ID
+  sourceNodeId String   // Source nodeId
+  targetNodeId String   // Target nodeId
+  sourceHandle String?  // Handle ID for branching (e.g. "true", "false", "default")
+  targetHandle String?
+}
+
+model WorkflowExecution {
+  id           String         @id @default(uuid())
+  workflowId   String
+  workflow     Workflow       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sessionId    String         @default("default")
+  status       String         @default("running") // "running", "completed", "failed", "retrying"
+  triggerData  String         @default("{}") // Payload that triggered workflow
+  contextData  String         @default("{}") // Execution memory & step variables
+  retryCount   Int            @default(0)
+  errorMsg     String?
+  startedAt    DateTime       @default(now())
+  completedAt  DateTime?
+  logs         ExecutionLog[]
+}
+
+model ExecutionLog {
+  id          Int               @id @default(autoincrement())
+  executionId String
+  execution   WorkflowExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  nodeId      String?
+  nodeLabel   String?
+  level       String            @default("info") // "info", "warn", "error", "success"
+  message     String
+  payloadJson String?
+  timestamp   DateTime          @default(now())
+}
+
+model SystemLog {
+  id        Int      @id @default(autoincrement())
+  sessionId String   @default("default")
+  level     String   @default("info")
+  message   String
+  timestamp DateTime @default(now())
+}
+
+model SupervisionTarget {
+  id        Int      @id @default(autoincrement())
+  sessionId String   @default("default")
+  jid       String
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model SupervisionLog {
+  id        Int       @id @default(autoincrement())
+  targetJid String
+  startedAt DateTime
+  endedAt   DateTime?
+  duration  Int       @default(0)
+}
+
+model MessageCache {
+  id         String   @id
+  sessionId  String
+  senderJid  String
+  senderName String?
+  text       String?
+  mediaType  String?
+  tempPath   String?
+  createdAt  DateTime @default(now())
+}
+
+model DeletedMessage {
+  id                 Int      @id @default(autoincrement())
+  sessionId          String   @default("default")
+  messageId          String
+  senderJid          String
+  senderName         String?
+  text               String?
+  mediaType          String?
+  cloudinaryUrl      String?
+  cloudinaryPublicId String?
+  deletedAt          DateTime @default(now())
+}
+
+model CloudinaryConfig {
+  id         Int     @id @default(1)
+  cloudName  String?
+  apiKey     String?
+  apiSecret  String?
+}

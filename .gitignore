@@ -1,0 +1,15 @@
+node_modules/
+.env
+sessions/
+logs/
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+backend/dist/
+frontend/dist/
+.bolt/
+.gemini/
+updated/
+*.log
+.DS_Store
+dist/
+build/

@@ -1,0 +1,20 @@
+{
+  "name": "wa-automate",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "prisma:push": "npm --prefix backend run prisma:db:push",
+    "prisma:gen": "npm --prefix backend run prisma:generate",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:backend": "npm --prefix backend run build",
+    "build": "npm run prisma:gen && npm run build:backend && npm run build:frontend",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "start": "npm --prefix backend run start"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

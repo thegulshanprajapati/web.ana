@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - WA Automate</title>
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #111827;
+      --bg-panel: rgba(17, 24, 39, 0.7);
+      --border-color: rgba(16, 185, 129, 0.15);
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --primary-glow: rgba(16, 185, 129, 0.3);
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --danger-glow: rgba(239, 68, 68, 0.3);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-family: 'Outfit', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      background-image: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 80%);
+      font-family: var(--font-family);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .admin-container {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      padding: 40px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+    }
+
+    .admin-header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-header h1 i {
+      color: var(--primary);
+    }
+
+    .back-btn {
+      text-decoration: none;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background-color: rgba(16, 185, 129, 0.1);
+      border-color: var(--primary);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .session-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .session-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .session-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .session-name i {
+      color: var(--text-muted);
+    }
+
+    .btn {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      color: #fff;
+      box-shadow: 0 0 15px var(--danger-glow);
+    }
+
+    .btn-danger:hover {
+      background-color: var(--danger-hover);
+    }
+
+    .btn-warning {
+      background-color: #f59e0b;
+      color: #000;
+    }
+
+    .btn-warning:hover {
+      background-color: #d97706;
+    }
+
+    .clean-all-card {
+      background-color: rgba(239, 68, 68, 0.05);
+      border: 1px dashed var(--danger);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .clean-all-card h3 {
+      font-size: 16px;
+      color: #ef4444;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .clean-all-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-box {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 400px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .modal-body {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1><i class="fa-solid fa-user-shield"></i> Admin Control Panel</h1>
+      <a href="/" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+    </div>
+
+    <!-- Active Sessions Section -->
+    <div>
+      <h2 class="section-title">Active Saved Sessions</h2>
+      <div class="session-list" id="session-list-container">
+        <p class="text-muted" style="font-size: 14px; text-align: center; padding: 20px;">Loading session folders...</p>
+      </div>
+    </div>
+
+    <!-- Dangerous Clean Section -->
+    <div class="clean-all-card">
+      <h3><i class="fa-solid fa-triangle-exclamation"></i> Clean All WhatsApp Sessions</h3>
+      <p>This action will terminate every active WhatsApp socket connection, clear all cached browser credentials under <code>sessions/</code> directory, and reset database states. You will need to scan QR codes for all bots again.</p>
+      <button class="btn btn-danger" id="clean-all-btn">
+        <i class="fa-solid fa-trash-can"></i> Clean All Sessions
+      </button>
+    </div>
+  </div>
+
+  <!-- Custom Alert/Confirm Modal -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-box">
+      <div class="modal-title" id="modal-title">Confirmation Required</div>
+      <div class="modal-body" id="modal-message">Are you sure you want to proceed with this action?</div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" id="modal-cancel-btn" style="background-color: rgba(255,255,255,0.05); color: var(--text-main);">Cancel</button>
+        <button class="btn btn-sm btn-danger" id="modal-ok-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sessionListContainer = document.getElementById('session-list-container');
+    const cleanAllBtn = document.getElementById('clean-all-btn');
+    const confirmModal = document.getElementById('confirm-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalMessage = document.getElementById('modal-message');
+    const modalCancelBtn = document.getElementById('modal-cancel-btn');
+    const modalOkBtn = document.getElementById('modal-ok-btn');
+
+    async function loadSessions() {
+      sessionListContainer.innerHTML = '<p style="font-size: 14px; text-align: center; color: var(--text-muted);">Loading...</p>';
+      try {
+        const res = await fetch('/api/admin/sessions');
+        const data = await res.json();
+        if (data.success) {
+          renderSessions(data.sessions);
+        } else {
+          sessionListContainer.innerHTML = `<p style="color:#ef4444; font-size:14px; text-align:center;">Error: ${data.error}</p>`;
+        }
+      } catch (err) {
+        sessionListContainer.innerHTML = '<p style="color:#ef4444; font-size:14px; text-align:center;">Failed to load sessions.</p>';
+      }
+    }
+
+    function renderSessions(sessions) {
+      sessionListContainer.innerHTML = '';
+      if (sessions.length === 0) {
+        sessionListContainer.innerHTML = '<p style="font-size: 14px; text-align: center; color: var(--text-muted);">No active WhatsApp session folders found.</p>';
+        return;
+      }
+
+      sessions.forEach(sess => {
+        const item = document.createElement('div');
+        item.className = 'session-item';
+        item.innerHTML = `
+          <div class="session-name">
+            <i class="fa-brands fa-whatsapp"></i>
+            <span>${sess}</span>
+          </div>
+          <button class="btn btn-sm btn-danger delete-sess-btn" data-id="${sess}">
+            <i class="fa-solid fa-trash"></i> Wipe
+          </button>
+        `;
+        sessionListContainer.appendChild(item);
+      });
+
+      // Bind wipe buttons
+      document.querySelectorAll('.delete-sess-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          showConfirm(`Are you sure you want to wipe credentials for session "${id}"? This will drop its socket connection.`, () => wipeSession(id));
+        });
+      });
+    }
+
+    async function wipeSession(id) {
+      try {
+        const res = await fetch(`/api/admin/sessions/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        alert(data.message || 'Session wiped.');
+        loadSessions();
+      } catch (err) {
+        alert('Failed to delete session.');
+      }
+    }
+
+    async function cleanAll() {
+      cleanAllBtn.disabled = true;
+      cleanAllBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Cleaning...';
+      try {
+        const res = await fetch('/api/admin/sessions/clean', { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || 'All sessions cleaned.');
+        loadSessions();
+      } catch (err) {
+        alert('Failed to clean sessions.');
+      } finally {
+        cleanAllBtn.disabled = false;
+        cleanAllBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i> Clean All Sessions';
+      }
+    }
+
+    cleanAllBtn.addEventListener('click', () => {
+      showConfirm('CRITICAL ACTION: Are you sure you want to clean ALL sessions? This will drop all WhatsApp connections and wipe credential storage folders completely!', cleanAll);
+    });
+
+    let currentAction = null;
+    function showConfirm(msg, action) {
+      modalMessage.textContent = msg;
+      currentAction = action;
+      confirmModal.style.display = 'flex';
+    }
+
+    modalCancelBtn.addEventListener('click', () => {
+      confirmModal.style.display = 'none';
+      currentAction = null;
+    });
+
+    modalOkBtn.addEventListener('click', () => {
+      confirmModal.style.display = 'none';
+      if (currentAction) currentAction();
+      currentAction = null;
+    });
+
+    // Initial Load
+    loadSessions();
+  </script>
+</body>
+</html>
