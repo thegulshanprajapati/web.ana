@@ -9,18 +9,18 @@
       }
     },
     {
-      "src": "backend/dist/server.js",
+      "src": "backend/src/server.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "backend/dist/server.js"
+      "dest": "backend/src/server.ts"
     },
     {
       "src": "/socket.io/(.*)",
-      "dest": "backend/dist/server.js"
+      "dest": "backend/src/server.ts"
     },
     {
       "src": "/(.*)",
