@@ -1,7 +1,7 @@
-{
+﻿{
   "name": "wa-automate-frontend",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -33,3 +33,4 @@
     "vite": "^5.2.0"
   }
 }
+

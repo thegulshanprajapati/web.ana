@@ -1,6 +1,6 @@
-{
+﻿{
   "name": "wa-automate-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "main": "dist/server.js",
   "type": "module",
@@ -9,18 +9,18 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed": "tsx src/seed.ts",
-    "prisma:generate": "npx prisma generate",
-    "prisma:db:push": "npx prisma db push",
-    "postinstall": "npx prisma generate"
+    "prisma:generate": "npx --no-install prisma generate",
+    "prisma:db:push": "npx --no-install prisma db push",
+    "postinstall": "npx --no-install prisma generate"
   },
   "dependencies": {
-    "@prisma/client": "^5.12.1",
+    "@prisma/client": "5.12.1",
     "@whiskeysockets/baileys": "^6.6.0",
     "bcryptjs": "^2.4.3",
     "express": "^4.19.2",
     "pino": "^8.20.0",
     "pino-pretty": "^11.0.0",
-    "prisma": "^5.12.1",
+    "prisma": "5.12.1",
     "qrcode-terminal": "^0.12.0",
     "socket.io": "^4.7.5",
     "wa-automate": "file:.."
@@ -33,3 +33,4 @@
     "typescript": "^5.4.5"
   }
 }
+

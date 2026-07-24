@@ -1,6 +1,6 @@
-{
+﻿{
   "name": "wa-automate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
@@ -18,3 +18,4 @@
     "concurrently": "^8.2.2"
   }
 }
+

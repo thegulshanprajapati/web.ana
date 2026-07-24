@@ -60,16 +60,100 @@ if (-not $isInitialized) {
     }
 }
 
-# Ask for Commit Message
-$commitMessage = Read-Host "`nEnter commit message (press Enter for default: 'Update WhatsApp Automation Engine')"
-if ([string]::IsNullOrWhiteSpace($commitMessage)) {
-    $commitMessage = "Update WhatsApp Automation Engine - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+# Read current version from root package.json
+$packageJsonPath = Join-Path $scriptDir "package.json"
+$version = "2.0.1"
+if (Test-Path $packageJsonPath) {
+    $content = Get-Content $packageJsonPath -Raw
+    if ($content -match '"version":\s*"([^"]+)"') {
+        $version = $Matches[1]
+    }
+}
+
+Write-Host "`nCurrent Version: $version" -ForegroundColor Cyan
+
+# Ask for version bump option
+Write-Host "Select Version Bump option:" -ForegroundColor Yellow
+Write-Host "1. Keep current ($version)"
+Write-Host "2. Patch bump (e.g., $version -> bump last digit)"
+Write-Host "3. Minor bump (e.g., $version -> bump middle digit)"
+Write-Host "4. Major bump (e.g., $version -> bump first digit)"
+$bumpChoice = Read-Host "Choice [1-4] (default: 1)"
+
+if ([string]::IsNullOrWhiteSpace($bumpChoice)) { $bumpChoice = "1" }
+
+$newVersion = $version
+if ($bumpChoice -ne "1") {
+    $parts = $version.Split('.')
+    if ($parts.Length -eq 3) {
+        [int]$major = $parts[0]
+        [int]$minor = $parts[1]
+        [int]$patch = $parts[2]
+        
+        switch ($bumpChoice) {
+            "2" { $patch += 1 }
+            "3" { $minor += 1; $patch = 0 }
+            "4" { $major += 1; $minor = 0; $patch = 0 }
+        }
+        $newVersion = "$major.$minor.$patch"
+        
+        # Update version in all package.json files
+        $jsonFiles = @("package.json", "backend/package.json", "frontend/package.json")
+        foreach ($fileRel in $jsonFiles) {
+            $filePath = Join-Path $scriptDir $fileRel
+            if (Test-Path $filePath) {
+                $fileContent = Get-Content $filePath -Raw
+                $fileContent = $fileContent -replace '"version":\s*"[^"]+"', "`"version`": `"$newVersion`""
+                Set-Content $filePath $fileContent -Encoding utf8
+            }
+        }
+        Write-Host "Version successfully bumped to: v$newVersion" -ForegroundColor Green
+    }
+}
+
+# Automatically scan changed files for a descriptive commit message
+$gitStatus = git status --porcelain
+$changedFiles = @()
+if ($gitStatus) {
+    foreach ($line in $gitStatus) {
+        if ($line.Length -gt 3) {
+            $file = $line.Substring(3).Trim()
+            $changedFiles += [System.IO.Path]::GetFileName($file)
+        }
+    }
+}
+
+# Include the bumped files if version changed
+if ($bumpChoice -ne "1") {
+    $changedFiles += "package.json"
+}
+
+# Unique file list
+$uniqueFiles = $changedFiles | Sort-Object -Unique
+$fileList = $uniqueFiles -join ", "
+if ($fileList.Length -gt 60) {
+    $fileList = $fileList.Substring(0, 57) + "..."
+}
+
+$defaultMsg = "Release v$newVersion"
+if (-not [string]::IsNullOrWhiteSpace($fileList)) {
+    $defaultMsg = "Release v$newVersion - Updates in: $fileList"
+}
+
+# Ask for Commit Message / Notes
+Write-Host "`nGenerated Commit Message:" -ForegroundColor Cyan
+Write-Host "  $defaultMsg" -ForegroundColor Gray
+$customNote = Read-Host "`nEnter commit notes (or press Enter to use default)"
+if ([string]::IsNullOrWhiteSpace($customNote)) {
+    $commitMessage = $defaultMsg
+} else {
+    $commitMessage = "Release v$newVersion - $customNote"
 }
 
 # Helper function to stage and commit safely
 function Safe-Commit {
     param($msg)
-    Write-Host "Staging files..." -ForegroundColor Yellow
+    Write-Host "`nStaging files..." -ForegroundColor Yellow
     Invoke-GitCommand -Arguments @("add", ".") -FailureMessage "Staging files failed."
     
     $status = git status --porcelain
