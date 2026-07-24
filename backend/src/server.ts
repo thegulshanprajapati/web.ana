@@ -32,8 +32,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// Setup logs directory
-fs.mkdirSync(path.resolve('logs'), { recursive: true });
+// Setup logs directory (only if not on Vercel)
+if (!process.env.VERCEL) {
+  try {
+    fs.mkdirSync(path.resolve('logs'), { recursive: true });
+  } catch (err) {
+    console.error('Failed to create logs directory:', err);
+  }
+}
 
 /* ---- AUTHENTICATION SYSTEM (DATABASE-BASED) ----------------------------------------------------- */
 
@@ -1135,14 +1141,19 @@ app.get('/api/status', async (req, res) => {
   res.send(html);
 });
 
-// Serve static frontend assets in production mode
-const frontendDist = path.resolve('../frontend/dist');
-if (fs.existsSync(frontendDist)) {
-  app.use(express.static(frontendDist));
-  app.get('*', (req, res) => res.sendFile(path.join(frontendDist, 'index.html')));
+// Serve static frontend assets from backend/public
+const publicPath = fs.existsSync(path.resolve('public'))
+  ? path.resolve('public')
+  : fs.existsSync(path.resolve(__dirname, '../public'))
+    ? path.resolve(__dirname, '../public')
+    : path.resolve('backend/public');
+
+if (fs.existsSync(publicPath) && fs.existsSync(path.join(publicPath, 'index.html'))) {
+  app.use(express.static(publicPath));
+  app.get('*', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
 } else {
   app.get('/', (req, res) => {
-    res.send('WhatsApp Automation backend is running in Dev mode.');
+    res.send('WhatsApp Automation backend is running in Dev mode (public frontend assets missing).');
   });
 }
 
